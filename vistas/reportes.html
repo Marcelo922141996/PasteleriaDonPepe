@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reportes - Pastelería Don Pepe</title>
+  <link rel="icon" href="/publico/imagenes/sistema/favicon.ico">
+  <link rel="stylesheet" href="/publico/css/estilos.css">
+</head>
+<body>
+  <!-- Contenedor de alertas -->
+  <div id="contenedor-alertas" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+  
+  <button class="boton-menu-movil" onclick="toggleMenuMovil()">☰</button>
+  
+  <div class="contenedor-principal">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo-sidebar">
+        <img src="/publico/imagenes/sistema/logo-don-pepe.png" alt="Logo Don Pepe">
+        <h2>Don Pepe</h2>
+        <p>Chiclayo, Perú</p>
+      </div>
+      
+      <nav>
+        <ul class="menu-navegacion">
+          <li>
+            <a href="/vistas/dashboard.html">
+              <span class="icono-menu">📊</span>
+              Dashboard
+            </a>
+          </li>
+          <li>
+            <a href="/vistas/productos.html">
+              <span class="icono-menu">🧁</span>
+              Productos
+            </a>
+          </li>
+          <li>
+            <a href="/vistas/movimientos.html">
+              <span class="icono-menu">📦</span>
+              Movimientos
+            </a>
+          </li>
+          <li>
+            <a href="/vistas/reportes.html" class="activo">
+              <span class="icono-menu">📄</span>
+              Reportes
+            </a>
+          </li>
+        </ul>
+      </nav>
+      
+      <div class="info-usuario">
+        <p><strong id="nombre-usuario">Usuario</strong></p>
+        <p>Rol: <span id="rol-usuario">-</span></p>
+        <button class="boton-cerrar-sesion" onclick="cerrarSesion()">Cerrar Sesión</button>
+      </div>
+    </aside>
+    
+    <!-- Contenido Principal -->
+    <main class="contenido">
+      <div class="encabezado-pagina">
+        <h1>Generación de Reportes</h1>
+        <p class="ruta-navegacion">Inicio / Reportes</p>
+      </div>
+      
+      <!-- Reporte de Inventario -->
+      <div class="contenedor-tabla">
+        <div class="encabezado-tabla">
+          <h2>📦 Reporte de Inventario Actual</h2>
+        </div>
+        
+        <div class="cuerpo-modal">
+          <p style="margin-bottom: 1.5rem; color: #6c757d;">
+            Genera un reporte completo del inventario actual con todos los productos, stock, precios y valores totales.
+          </p>
+          
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <button class="boton boton-exportar" onclick="generarReporteInventarioExcel()">
+              📊 Exportar a Excel
+            </button>
+            
+            <button class="boton" style="background: #dc3545; color: white;" onclick="generarReporteInventarioPDF()">
+              📄 Exportar a PDF
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Reporte de Movimientos -->
+      <div class="contenedor-tabla">
+        <div class="encabezado-tabla">
+          <h2>📋 Reporte de Movimientos</h2>
+        </div>
+        
+        <div class="cuerpo-modal">
+          <p style="margin-bottom: 1.5rem; color: #6c757d;">
+            Genera un reporte detallado de todos los movimientos de inventario en un rango de fechas específico.
+          </p>
+          
+          <div class="formulario">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+              <div class="grupo-formulario">
+                <label for="fecha-inicio-reporte">Fecha Inicio</label>
+                <input type="date" id="fecha-inicio-reporte" class="campo-busqueda">
+              </div>
+              
+              <div class="grupo-formulario">
+                <label for="fecha-fin-reporte">Fecha Fin</label>
+                <input type="date" id="fecha-fin-reporte" class="campo-busqueda">
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+              <button class="boton boton-exportar" onclick="generarReporteMovimientosExcel()">
+                📊 Exportar a Excel
+              </button>
+              
+              <button class="boton" style="background: #dc3545; color: white;" onclick="generarReporteMovimientosPDF()">
+                📄 Exportar a PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Reporte de Stock Bajo - CORREGIDO -->
+      <div class="contenedor-tabla">
+        <div class="encabezado-tabla">
+          <h2>⚠️ Reporte de Productos con Stock Bajo</h2>
+        </div>
+        
+        <div class="cuerpo-modal">
+          <p style="margin-bottom: 1.5rem; color: #6c757d;">
+            Lista de productos que han alcanzado o están por debajo del stock mínimo configurado.
+          </p>
+          
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <button class="boton boton-exportar" onclick="generarReporteStockBajoExcel()">
+              📊 Exportar a Excel
+            </button>
+            
+            <button class="boton" style="background: #dc3545; color: white;" onclick="generarReporteStockBajoPDF()">
+              📄 Exportar a PDF
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Información adicional -->
+      <div style="background: #e7f3ff; border-left: 4px solid #2196F3; padding: 15px; margin-top: 2rem; border-radius: 4px;">
+        <div>
+          <strong>💡 Nota:</strong> Los reportes se generan con los datos actuales del sistema. 
+          Asegúrese de seleccionar las fechas correctas para los reportes de movimientos.
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <script src="/publico/js/principal.js"></script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión - Pastelería Don Pepe</title>
+  <link rel="icon" href="/publico/imagenes/sistema/favicon.ico">
+  <link rel="stylesheet" href="/publico/css/estilos.css">
+</head>
+<body>
+  <div class="contenedor-login">
+    <div class="tarjeta-login">
+      <div class="encabezado-login">
+        <img src="/publico/imagenes/sistema/logo-don-pepe.png" alt="Logo Don Pepe" class="logo-login">
+        <h1>Pastelería Don Pepe</h1>
+        <p>Sistema de Control de Inventario</p>
+        <p style="font-size: 0.8rem; margin-top: 0.5rem;">Chiclayo, Perú</p>
+      </div>
+      
+      <div class="cuerpo-login">
+        <div id="contenedor-alertas"></div>
+        
+        <form id="formulario-login" onsubmit="iniciarSesion(event)">
+          <div class="grupo-formulario">
+            <label for="usuario">Usuario</label>
+            <input 
+              type="text" 
+              id="usuario" 
+              name="usuario" 
+              placeholder="Ingrese su usuario"
+              required
+              autocomplete="username"
+            >
+          </div>
+          
+          <div class="grupo-formulario">
+            <label for="contrasena">Contraseña</label>
+            <input 
+              type="password" 
+              id="contrasena" 
+              name="contrasena" 
+              placeholder="Ingrese su contraseña"
+              required
+              autocomplete="current-password"
+            >
+          </div>
+          
+          <button type="submit" class="boton-primario">Iniciar Sesión</button>
+        </form>
+        
+        <div style="margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; font-size: 0.85rem;">
+          <p style="font-weight: 600; margin-bottom: 0.5rem;">Credenciales de prueba:</p>
+          <p><strong>Admin:</strong> admin / admin123</p>
+          <p><strong>Almacenero:</strong> almacenero / almacen123</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="/publico/js/principal.js"></script>
+</body>
+</html>

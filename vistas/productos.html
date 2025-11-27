@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Productos - Pastelería Don Pepe</title>
+  <link rel="icon" href="/publico/imagenes/sistema/favicon.ico">
+  <link rel="stylesheet" href="/publico/css/estilos.css">
+</head>
+<body>
+  <!-- Contenedor de alertas -->
+  <div id="contenedor-alertas" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+  
+  <button class="boton-menu-movil" onclick="toggleMenuMovil()">☰</button>
+  
+  <div class="contenedor-principal">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo-sidebar">
+        <img src="/publico/imagenes/sistema/logo-don-pepe.png" alt="Logo Don Pepe">
+        <h2>Don Pepe</h2>
+        <p>Chiclayo, Perú</p>
+      </div>
+      
+      <nav>
+        <ul class="menu-navegacion">
+          <li>
+            <a href="/vistas/dashboard.html">
+              <span class="icono-menu">📊</span>
+              Dashboard
+            </a>
+          </li>
+          <li>
+            <a href="/vistas/productos.html" class="activo">
+              <span class="icono-menu">🧁</span>
+              Productos
+            </a>
+          </li>
+          <li>
+            <a href="/vistas/movimientos.html">
+              <span class="icono-menu">📦</span>
+              Movimientos
+            </a>
+          </li>
+          <li>
+            <a href="/vistas/reportes.html">
+              <span class="icono-menu">📄</span>
+              Reportes
+            </a>
+          </li>
+        </ul>
+      </nav>
+      
+      <div class="info-usuario">
+        <p><strong id="nombre-usuario">Usuario</strong></p>
+        <p>Rol: <span id="rol-usuario">-</span></p>
+        <button class="boton-cerrar-sesion" onclick="cerrarSesion()">Cerrar Sesión</button>
+      </div>
+    </aside>
+    
+    <!-- Contenido Principal -->
+    <main class="contenido">
+      <div class="encabezado-pagina">
+        <h1>Gestión de Productos</h1>
+        <p class="ruta-navegacion">Inicio / Productos</p>
+      </div>
+      
+      <!-- Tabla de productos -->
+      <div class="contenedor-tabla">
+        <div class="encabezado-tabla">
+          <h2>Lista de Productos</h2>
+          
+          <div class="barra-acciones">
+            <input 
+              type="text" 
+              id="busqueda-producto" 
+              class="campo-busqueda" 
+              placeholder="Buscar producto..."
+            >
+            
+            <select 
+              id="filtro-categoria" 
+              class="campo-busqueda"
+            >
+              <option value="">Todas las categorías</option>
+              <option value="tortas">Tortas</option>
+              <option value="pasteles">Pasteles</option>
+              <option value="panes">Panes</option>
+              <option value="bocaditos">Bocaditos</option>
+              <option value="bebidas">Bebidas</option>
+              <option value="insumos">Insumos</option>
+              <option value="otros">Otros</option>
+            </select>
+            
+            <button class="boton boton-agregar solo-admin" onclick="abrirModalProducto()">
+              ➕ Nuevo Producto
+            </button>
+          </div>
+        </div>
+        
+        <!-- ✅ CORRECCIÓN: Contenedor vacío para que JavaScript inyecte la tabla completa -->
+        <div id="contenedor-tabla-productos">
+          <!-- El JavaScript inyectará aquí toda la tabla -->
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <!-- Modal Producto -->
+  <div id="modal-producto" class="modal">
+    <div class="contenido-modal">
+      <div class="encabezado-modal">
+        <h3 id="titulo-modal-producto">Nuevo Producto</h3>
+        <button class="boton-cerrar-modal" onclick="toggleModal('modal-producto', false)">&times;</button>
+      </div>
+      
+      <form id="formulario-producto" onsubmit="guardarProducto(event)" class="formulario">
+        <div class="cuerpo-modal">
+          <input type="hidden" id="id-producto" name="id_producto">
+          
+          <div class="grupo-formulario">
+            <label for="nombre-producto">Nombre del Producto *</label>
+            <input type="text" id="nombre-producto" name="nombre" required>
+          </div>
+          
+          <div class="grupo-formulario">
+            <label for="descripcion-producto">Descripción</label>
+            <textarea id="descripcion-producto" name="descripcion" rows="3"></textarea>
+          </div>
+          
+          <div class="grupo-formulario">
+            <label for="categoria-producto">Categoría *</label>
+            <select id="categoria-producto" name="categoria" required>
+              <option value="">Seleccione una categoría</option>
+              <option value="tortas">Tortas</option>
+              <option value="pasteles">Pasteles</option>
+              <option value="panes">Panes</option>
+              <option value="bocaditos">Bocaditos</option>
+              <option value="bebidas">Bebidas</option>
+              <option value="insumos">Insumos</option>
+              <option value="otros">Otros</option>
+            </select>
+          </div>
+          
+          <div class="fila-formulario">
+            <div class="grupo-formulario">
+              <label for="precio-venta">Precio de Venta (S/) *</label>
+              <input type="number" id="precio-venta" name="precio_venta" step="0.01" min="0" required>
+            </div>
+            
+            <div class="grupo-formulario">
+              <label for="precio-costo">Precio de Costo (S/) *</label>
+              <input type="number" id="precio-costo" name="precio_costo" step="0.01" min="0" required>
+            </div>
+          </div>
+          
+          <div class="fila-formulario">
+            <div class="grupo-formulario">
+              <label for="stock-actual">Stock Actual *</label>
+              <input type="number" id="stock-actual" name="stock_actual" min="0" required>
+            </div>
+            
+            <div class="grupo-formulario">
+              <label for="stock-minimo">Stock Mínimo *</label>
+              <input type="number" id="stock-minimo" name="stock_minimo" min="0" required>
+            </div>
+          </div>
+          
+          <div class="grupo-formulario">
+            <label for="unidad-medida">Unidad de Medida *</label>
+            <select id="unidad-medida" name="unidad_medida" required>
+              <option value="unidad">Unidad</option>
+              <option value="kg">Kilogramo</option>
+              <option value="litro">Litro</option>
+              <option value="caja">Caja</option>
+              <option value="docena">Docena</option>
+            </select>
+          </div>
+          
+          <div class="grupo-formulario">
+            <label for="imagen-producto">Imagen del Producto</label>
+            <input type="file" id="imagen-producto" name="imagen" accept="image/*">
+            <small style="color: #666;">Formatos permitidos: JPG, PNG. Tamaño máximo: 2MB</small>
+          </div>
+          
+          <div class="grupo-formulario">
+            <label for="estado-producto">Estado *</label>
+            <select id="estado-producto" name="estado" required>
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="pie-modal">
+          <button type="button" class="boton boton-cancelar" onclick="toggleModal('modal-producto', false)">Cancelar</button>
+          <button type="submit" class="boton boton-guardar">💾 Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <script src="/publico/js/principal.js"></script>
+</body>
+</html>

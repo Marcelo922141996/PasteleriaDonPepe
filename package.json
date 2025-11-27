@@ -1,0 +1,27 @@
+{
+  "name": "pasteleriadonpepe",
+  "version": "1.0.0",
+  "description": "Sistema completo de gestión de inventario desarrollado para la Pastelería Don Pepe de Chiclayo, Perú.",
+  "main": "servidor.js",
+  "scripts": {
+  "start": "node servidor.js",
+  "dev": "nodemon servidor.js",
+  "test": "echo \"Error: no test specified\" && exit 1"
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.2.3",
+    "exceljs": "^4.4.0",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "multer": "^2.0.2",
+    "mysql2": "^3.15.3",
+    "pdfkit": "^0.17.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}

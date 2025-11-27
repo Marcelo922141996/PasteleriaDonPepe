@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movimientos - Pastelería Don Pepe</title>
+  <link rel="icon" href="/publico/imagenes/sistema/favicon.ico">
+  <link rel="stylesheet" href="/publico/css/estilos.css">
+</head>
+<body>
+  <!-- Contenedor de alertas -->
+  <div id="contenedor-alertas" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+  
+  <button class="boton-menu-movil" onclick="toggleMenuMovil()">☰</button>
+  
+  <div class="contenedor-principal">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo-sidebar">
+        <img src="/publico/imagenes/sistema/logo-don-pepe.png" alt="Logo Don Pepe">
+        <h2>Don Pepe</h2>
+        <p>Chiclayo, Perú</p>
+      </div>
+      
+      <nav>
+        <ul class="menu-navegacion">
+          <li>
+            <a href="/vistas/dashboard.html">
+              <span class="icono-menu">📊</span>
+              Dashboard
+            </a>
+          </li>
+          <li>
+            <a href="/vistas/productos.html">
+              <span class="icono-menu">🧁</span>
+              Productos
+            </a>
+          </li>
+          <li>
+            <a href="/vistas/movimientos.html" class="activo">
+              <span class="icono-menu">📦</span>
+              Movimientos
+            </a>
+          </li>
+          <li>
+            <a href="/vistas/reportes.html">
+              <span class="icono-menu">📄</span>
+              Reportes
+            </a>
+          </li>
+        </ul>
+      </nav>
+      
+      <div class="info-usuario">
+        <p><strong id="nombre-usuario">Usuario</strong></p>
+        <p>Rol: <span id="rol-usuario">-</span></p>
+        <button class="boton-cerrar-sesion" onclick="cerrarSesion()">Cerrar Sesión</button>
+      </div>
+    </aside>
+    
+    <!-- Contenido Principal -->
+    <main class="contenido">
+      <div class="encabezado-pagina">
+        <h1>Movimientos de Inventario</h1>
+        <p class="ruta-navegacion">Inicio / Movimientos</p>
+      </div>
+      
+      <!-- Tabla de movimientos -->
+      <div class="contenedor-tabla">
+        <div class="encabezado-tabla">
+          <h2>Historial de Movimientos</h2>
+          
+          <div class="barra-acciones">
+            <input 
+              type="date" 
+              id="filtro-fecha-inicio" 
+              class="campo-busqueda"
+              placeholder="Fecha inicio"
+            >
+            
+            <input 
+              type="date" 
+              id="filtro-fecha-fin" 
+              class="campo-busqueda"
+              placeholder="Fecha fin"
+            >
+            
+            <select 
+              id="filtro-tipo-movimiento" 
+              class="campo-busqueda"
+            >
+              <option value="">Todos los tipos</option>
+              <option value="entrada">Entradas</option>
+              <option value="salida">Salidas</option>
+              <option value="ajuste">Ajustes</option>
+            </select>
+            
+            <button class="boton boton-agregar" onclick="abrirModalMovimiento()">
+              ➕ Nuevo Movimiento
+            </button>
+          </div>
+        </div>
+        
+        <!-- ✅ CORRECCIÓN: Contenedor vacío para que JavaScript inyecte la tabla completa -->
+        <div id="contenedor-tabla-movimientos">
+          <!-- El JavaScript inyectará aquí toda la tabla -->
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <!-- Modal Movimiento -->
+  <div id="modal-movimiento" class="modal">
+    <div class="contenido-modal">
+      <div class="encabezado-modal">
+        <h3>Registrar Movimiento</h3>
+        <button class="boton-cerrar-modal" onclick="toggleModal('modal-movimiento', false)">&times;</button>
+      </div>
+      
+      <form id="formulario-movimiento" onsubmit="registrarMovimiento(event)" class="formulario">
+        <div class="cuerpo-modal">
+          <div class="grupo-formulario">
+            <label for="producto-movimiento">Producto *</label>
+            <select id="producto-movimiento" name="id_producto" required>
+              <option value="">Seleccione un producto</option>
+            </select>
+          </div>
+          
+          <div class="grupo-formulario">
+            <label for="tipo-movimiento">Tipo de Movimiento *</label>
+            <select id="tipo-movimiento" name="tipo_movimiento" required>
+              <option value="">Seleccione un tipo</option>
+              <option value="entrada">Entrada (Agregar stock)</option>
+              <option value="salida">Salida (Reducir stock)</option>
+              <option value="ajuste">Ajuste (Establecer stock)</option>
+            </select>
+          </div>
+          
+          <div class="grupo-formulario">
+            <label for="cantidad-movimiento">Cantidad *</label>
+            <input type="number" id="cantidad-movimiento" name="cantidad" min="1" required>
+            <small style="color: #6c757d;">Para ajuste, ingrese el nuevo stock total</small>
+          </div>
+          
+          <div class="grupo-formulario">
+            <label for="motivo-movimiento">Motivo *</label>
+            <input type="text" id="motivo-movimiento" name="motivo" placeholder="Ej: Compra proveedor, Venta, Corrección inventario" required>
+          </div>
+          
+          <div class="grupo-formulario">
+            <label for="observaciones-movimiento">Observaciones</label>
+            <textarea id="observaciones-movimiento" name="observaciones" placeholder="Información adicional (opcional)"></textarea>
+          </div>
+        </div>
+        
+        <div class="pie-modal">
+          <button type="button" class="boton boton-cancelar" onclick="toggleModal('modal-movimiento', false)">Cancelar</button>
+          <button type="submit" class="boton boton-guardar">💾 Registrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <script src="/publico/js/principal.js"></script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Pastelería Don Pepe</title>
+  <link rel="icon" href="/publico/imagenes/sistema/favicon.ico">
+  <link rel="stylesheet" href="/publico/css/estilos.css">
+</head>
+<body>
+  <!-- Contenedor de alertas -->
+  <div id="contenedor-alertas" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+  
+  <button class="boton-menu-movil" onclick="toggleMenuMovil()">☰</button>
+  
+  <div class="contenedor-principal">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo-sidebar">
+        <img src="/publico/imagenes/sistema/logo-don-pepe.png" alt="Logo Don Pepe">
+        <h2>Don Pepe</h2>
+        <p>Chiclayo, Perú</p>
+      </div>
+      
+      <nav>
+        <ul class="menu-navegacion">
+          <li>
+            <a href="/vistas/dashboard.html" class="activo">
+              <span class="icono-menu">📊</span>
+              Dashboard
+            </a>
+          </li>
+          <li>
+            <a href="/vistas/productos.html">
+              <span class="icono-menu">🧁</span>
+              Productos
+            </a>
+          </li>
+          <li>
+            <a href="/vistas/movimientos.html">
+              <span class="icono-menu">📦</span>
+              Movimientos
+            </a>
+          </li>
+          <li>
+            <a href="/vistas/reportes.html">
+              <span class="icono-menu">📄</span>
+              Reportes
+            </a>
+          </li>
+        </ul>
+      </nav>
+      
+      <div class="info-usuario">
+        <p><strong id="nombre-usuario">Usuario</strong></p>
+        <p>Rol: <span id="rol-usuario">-</span></p>
+        <button class="boton-cerrar-sesion" onclick="cerrarSesion()">Cerrar Sesión</button>
+      </div>
+    </aside>
+    
+    <!-- Contenido Principal -->
+    <main class="contenido">
+      <div class="encabezado-pagina">
+        <h1>Dashboard</h1>
+        <p class="ruta-navegacion">Inicio / Dashboard</p>
+      </div>
+      
+      <!-- Tarjetas de estadísticas -->
+      <div class="grid-estadisticas">
+        <div class="tarjeta-estadistica">
+          <div class="encabezado-tarjeta">
+            <span class="titulo-tarjeta">Total Productos</span>
+            <div class="icono-tarjeta">🧁</div>
+          </div>
+          <div class="valor-estadistica" id="total-productos">0</div>
+          <p class="subtitulo-tarjeta">Productos activos en inventario</p>
+        </div>
+        
+        <div class="tarjeta-estadistica exito">
+          <div class="encabezado-tarjeta">
+            <span class="titulo-tarjeta">Valor Inventario</span>
+            <div class="icono-tarjeta">💰</div>
+          </div>
+          <div class="valor-estadistica" id="valor-inventario">S/ 0.00</div>
+          <p class="subtitulo-tarjeta">Valor total del inventario</p>
+        </div>
+        
+        <div class="tarjeta-estadistica peligro">
+          <div class="encabezado-tarjeta">
+            <span class="titulo-tarjeta">Stock Bajo</span>
+            <div class="icono-tarjeta">⚠️</div>
+          </div>
+          <div class="valor-estadistica" id="stock-bajo">0</div>
+          <p class="subtitulo-tarjeta">Productos con stock mínimo</p>
+        </div>
+        
+        <div class="tarjeta-estadistica info">
+          <div class="encabezado-tarjeta">
+            <span class="titulo-tarjeta">Movimientos Hoy</span>
+            <div class="icono-tarjeta">📦</div>
+          </div>
+          <div class="valor-estadistica" id="movimientos-hoy">0</div>
+          <p class="subtitulo-tarjeta">Movimientos registrados hoy</p>
+        </div>
+      </div>
+      
+      <!-- Gráfico de inventario por categoría -->
+      <div class="contenedor-grafico">
+        <h3>Inventario por Categoría</h3>
+        <div style="position: relative; height: 400px; max-width: 100%;">
+          <canvas id="grafico-categorias"></canvas>
+        </div>
+      </div>
+      
+      <!-- Últimos movimientos -->
+      <div class="contenedor-tabla">
+        <div class="encabezado-tabla">
+          <h2>Últimos Movimientos</h2>
+          <a href="/vistas/movimientos.html" class="boton boton-primario">Ver Todos</a>
+        </div>
+        
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Tipo</th>
+              <th>Cantidad</th>
+              <th>Usuario</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-ultimos-movimientos">
+            <tr>
+              <td colspan="5" class="texto-centrado">
+                <div class="contenedor-cargando">
+                  <div class="cargando"></div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Alertas de Stock Bajo -->
+      <div class="contenedor-tabla">
+        <div class="encabezado-tabla">
+          <h2>Alertas de Stock Bajo</h2>
+          <a href="/vistas/productos.html" class="boton boton-advertencia">Ver Productos</a>
+        </div>
+        
+        <div id="alertas-stock-bajo">
+          <div style="text-align: center; padding: 20px;">
+            <div class="contenedor-cargando">
+              <div class="cargando"></div>
+            </div>
+            <p>Cargando alertas...</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <!-- CRÍTICO: Chart.js DEBE estar ANTES de principal.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
+  <!-- Script principal DESPUÉS de Chart.js -->
+  <script src="/publico/js/principal.js"></script>
+</body>
+</html>
