@@ -251,10 +251,19 @@ router.get('/stock-bajo/excel', verificarSesion, async (req, res) => {
   try {
     const [productos] = await pool.query(
       `SELECT * FROM productos
-       WHERE estado = ? AND stock_actual <= stock_minimo
+       WHERE estado = ? AND stock_actual < stock_minimo
        ORDER BY (stock_minimo - stock_actual) DESC, nombre`,
       ['activo']
     );
+
+    // ✅ VALIDACIÓN AGREGADA - CRÍTICA
+    if (!productos || productos.length === 0) {
+      return res.status(200).json({
+        success: true,
+        mensaje: 'No hay productos con stock bajo actualmente',
+        productos: []
+      });
+    }
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Stock Bajo');
@@ -309,10 +318,19 @@ router.get('/stock-bajo/pdf', verificarSesion, async (req, res) => {
   try {
     const [productos] = await pool.query(
       `SELECT * FROM productos
-       WHERE estado = ? AND stock_actual <= stock_minimo
+       WHERE estado = ? AND stock_actual < stock_minimo
        ORDER BY (stock_minimo - stock_actual) DESC, nombre`,
       ['activo']
     );
+
+    // ✅ VALIDACIÓN AGREGADA - CRÍTICA
+    if (!productos || productos.length === 0) {
+      return res.status(200).json({
+        success: true,
+        mensaje: 'No hay productos con stock bajo actualmente',
+        productos: []
+      });
+    }
 
     const doc = new PDFDocument({
       margin: 40,

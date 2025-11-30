@@ -684,6 +684,15 @@ async function generarReporteStockBajoPDF() {
   try {
     mostrarAlerta('Generando reporte de stock bajo...', 'info');
     const respuesta = await fetch('/api/reportes/stock-bajo/pdf');
+    
+    // ✅ VALIDAR SI ES JSON (sin productos)
+    const contentType = respuesta.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const data = await respuesta.json();
+      mostrarAlerta(data.mensaje || 'Sin datos para reportar', 'info');
+      return;
+    }
+    
     if (respuesta.ok) {
       const blob = await respuesta.blob();
       if (blob.type !== 'application/pdf') {
@@ -709,6 +718,41 @@ async function generarReporteStockBajoPDF() {
     mostrarAlerta('Error al generar reporte de stock bajo', 'error');
   }
 }
+
+async function generarReporteStockBajoExcel() {
+  try {
+    mostrarAlerta('Generando reporte Excel...', 'info');
+    const respuesta = await fetch('/api/reportes/stock-bajo/excel');
+    
+    // ✅ VALIDAR SI ES JSON (sin productos)
+    const contentType = respuesta.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const data = await respuesta.json();
+      mostrarAlerta(data.mensaje || 'Sin datos para reportar', 'info');
+      return;
+    }
+    
+    if (respuesta.ok) {
+      const blob = await respuesta.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `stock_bajo_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      mostrarAlerta('Reporte Excel generado exitosamente', 'exito');
+    } else {
+      const error = await respuesta.json().catch(() => ({ mensaje: 'Error desconocido' }));
+      mostrarAlerta(error.mensaje || 'Error al generar reporte', 'error');
+    }
+  } catch (error) {
+    console.error('Error al generar reporte Excel:', error);
+    mostrarAlerta('Error al generar reporte de stock bajo', 'error');
+  }
+}
+
 
 async function generarReporteMovimientosExcel() {
   const fechaInicio = document.getElementById('fecha-inicio-reporte')?.value || '';
