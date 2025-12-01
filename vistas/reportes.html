@@ -155,6 +155,113 @@
           Asegúrese de seleccionar las fechas correctas para los reportes de movimientos.
         </div>
       </div>
+
+<!-- Reporte de Pedidos a Proveedores - NUEVO -->
+      <div class="contenedor-tabla">
+        <div class="encabezado-tabla">
+          <h2>📦 Reporte de Pedidos a Proveedores</h2>
+        </div>
+        
+        <div class="cuerpo-modal">
+          <p style="margin-bottom: 1.5rem; color: #6c757d;">
+            Genera un reporte de todos los pedidos realizados a proveedores con filtros por fecha y estado.
+          </p>
+          
+          <div class="formulario">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+              <div class="grupo-formulario">
+                <label for="fecha-inicio-pedidos">Fecha Inicio</label>
+                <input type="date" id="fecha-inicio-pedidos" class="campo-busqueda">
+              </div>
+              
+              <div class="grupo-formulario">
+                <label for="fecha-fin-pedidos">Fecha Fin</label>
+                <input type="date" id="fecha-fin-pedidos" class="campo-busqueda">
+              </div>
+              
+              <div class="grupo-formulario">
+                <label for="filtro-estado-pedidos">Estado</label>
+                <select id="filtro-estado-pedidos" class="campo-busqueda">
+                  <option value="">Todos</option>
+                  <option value="pendiente">Pendiente</option>
+                  <option value="recibido">Recibido</option>
+                  <option value="cancelado">Cancelado</option>
+                </select>
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+              <button class="boton boton-exportar" onclick="generarReportePedidosExcel()">
+                📊 Exportar a Excel
+              </button>
+              
+              <button class="boton" style="background: #dc3545; color: white;" onclick="generarReportePedidosPDF()">
+                📄 Exportar a PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Reporte de Auditoría (Solo Admin) - NUEVO -->
+      <div class="contenedor-tabla solo-admin">
+        <div class="encabezado-tabla">
+          <h2>🔒 Reporte de Registros Eliminados (Auditoría)</h2>
+        </div>
+        
+        <div class="cuerpo-modal">
+          <p style="margin-bottom: 1.5rem; color: #6c757d;">
+            Historial completo de todos los registros eliminados del sistema. Solo visible para administradores.
+          </p>
+          
+          <div class="formulario">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+              <div class="grupo-formulario">
+                <label for="fecha-inicio-auditoria">Fecha Inicio</label>
+                <input type="date" id="fecha-inicio-auditoria" class="campo-busqueda">
+              </div>
+              
+              <div class="grupo-formulario">
+                <label for="fecha-fin-auditoria">Fecha Fin</label>
+                <input type="date" id="fecha-fin-auditoria" class="campo-busqueda">
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+              <button class="boton boton-exportar" onclick="generarReporteAuditoriaExcel()">
+                📊 Exportar a Excel
+              </button>
+              
+              <button class="boton" style="background: #dc3545; color: white;" onclick="generarReporteAuditoriaPDF()">
+                📄 Exportar a PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Reporte de Estadísticas de Stock - NUEVO -->
+      <div class="contenedor-tabla">
+        <div class="encabezado-tabla">
+          <h2>📊 Reporte de Estadísticas de Stock</h2>
+        </div>
+        
+        <div class="cuerpo-modal">
+          <p style="margin-bottom: 1.5rem; color: #6c757d;">
+            Análisis completo con stock actual, mínimo, máximo y promedio de todos los productos.
+          </p>
+          
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <button class="boton boton-exportar" onclick="generarReporteEstadisticasExcel()">
+              📊 Exportar a Excel
+            </button>
+            
+            <button class="boton" style="background: #dc3545; color: white;" onclick="generarReporteEstadisticasPDF()">
+              📄 Exportar a PDF
+            </button>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
   

@@ -598,4 +598,629 @@ router.get('/movimientos/pdf', verificarSesion, async (req, res) => {
   }
 });
 
+/**
+ * ============================================================================
+ * NUEVAS RUTAS DE REPORTES - AGREGAR DESPUÉS DE LA LÍNEA 601
+ * Copiar y pegar antes de: module.exports = router;
+ * ============================================================================
+ */
+
+/**
+ * GET /api/reportes/pedidos-proveedores/excel
+ * Reporte de pedidos a proveedores en Excel
+ */
+router.get('/pedidos-proveedores/excel', verificarSesion, async (req, res) => {
+  try {
+    const { fecha_inicio = '', fecha_fin = '', estado = '' } = req.query;
+
+    let query = `
+      SELECT pp.*, pr.nombre_proveedor, pr.ruc, u.nombre_completo
+      FROM pedidos_proveedores pp
+      JOIN proveedores pr ON pp.id_proveedor = pr.id_proveedor
+      JOIN usuarios u ON pp.id_usuario = u.id_usuario
+      WHERE 1=1
+    `;
+    let params = [];
+
+    if (fecha_inicio) {
+      query += ' AND DATE(pp.fecha_pedido) >= ?';
+      params.push(fecha_inicio);
+    }
+    if (fecha_fin) {
+      query += ' AND DATE(pp.fecha_pedido) <= ?';
+      params.push(fecha_fin);
+    }
+    if (estado) {
+      query += ' AND pp.estado = ?';
+      params.push(estado);
+    }
+
+    query += ' ORDER BY pp.fecha_pedido DESC';
+    const [pedidos] = await pool.query(query, params);
+
+    if (!pedidos || pedidos.length === 0) {
+      return res.status(200).json({
+        success: true,
+        mensaje: 'No hay pedidos para reportar',
+        pedidos: []
+      });
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Pedidos a Proveedores');
+
+    worksheet.columns = [
+      { header: 'ID', key: 'id_pedido', width: 10 },
+      { header: 'Proveedor', key: 'nombre_proveedor', width: 30 },
+      { header: 'RUC', key: 'ruc', width: 15 },
+      { header: 'Fecha Pedido', key: 'fecha_pedido', width: 20 },
+      { header: 'Fecha Entrega Est.', key: 'fecha_entrega_estimada', width: 20 },
+      { header: 'Fecha Entrega Real', key: 'fecha_entrega_real', width: 20 },
+      { header: 'Estado', key: 'estado', width: 15 },
+      { header: 'Total', key: 'total', width: 12 },
+      { header: 'Usuario', key: 'nombre_completo', width: 25 }
+    ];
+
+    worksheet.getRow(1).font = { bold: true, size: 11, color: { argb: 'FFFFFFFF' } };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF2196F3' }
+    };
+    worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'center' };
+
+    let totalGeneral = 0;
+    pedidos.forEach(ped => {
+      totalGeneral += parseFloat(ped.total);
+      worksheet.addRow({
+        id_pedido: ped.id_pedido,
+        nombre_proveedor: ped.nombre_proveedor,
+        ruc: ped.ruc || '-',
+        fecha_pedido: new Date(ped.fecha_pedido).toLocaleDateString('es-PE'),
+        fecha_entrega_estimada: ped.fecha_entrega_estimada ? new Date(ped.fecha_entrega_estimada).toLocaleDateString('es-PE') : '-',
+        fecha_entrega_real: ped.fecha_entrega_real ? new Date(ped.fecha_entrega_real).toLocaleDateString('es-PE') : '-',
+        estado: ped.estado.toUpperCase(),
+        total: parseFloat(ped.total).toFixed(2),
+        nombre_completo: ped.nombre_completo
+      });
+    });
+
+    const filaTotal = worksheet.addRow({});
+    filaTotal.getCell('nombre_proveedor').value = 'TOTAL GENERAL';
+    filaTotal.getCell('total').value = totalGeneral.toFixed(2);
+    filaTotal.font = { bold: true, size: 11 };
+    filaTotal.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFFFEB3B' }
+    };
+
+    worksheet.getColumn('total').numFmt = '$#,##0.00';
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=pedidos_proveedores_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return res.send(buffer);
+
+  } catch (error) {
+    console.error('Error al generar reporte de pedidos:', error);
+    return res.status(500).json({
+      success: false,
+      mensaje: 'Error al generar reporte de pedidos',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+/**
+ * GET /api/reportes/pedidos-proveedores/pdf
+ * Reporte de pedidos a proveedores en PDF
+ */
+router.get('/pedidos-proveedores/pdf', verificarSesion, async (req, res) => {
+  try {
+    const { fecha_inicio = '', fecha_fin = '', estado = '' } = req.query;
+
+    let query = `
+      SELECT pp.*, pr.nombre_proveedor, pr.ruc, u.nombre_completo
+      FROM pedidos_proveedores pp
+      JOIN proveedores pr ON pp.id_proveedor = pr.id_proveedor
+      JOIN usuarios u ON pp.id_usuario = u.id_usuario
+      WHERE 1=1
+    `;
+    let params = [];
+
+    if (fecha_inicio) {
+      query += ' AND DATE(pp.fecha_pedido) >= ?';
+      params.push(fecha_inicio);
+    }
+    if (fecha_fin) {
+      query += ' AND DATE(pp.fecha_pedido) <= ?';
+      params.push(fecha_fin);
+    }
+    if (estado) {
+      query += ' AND pp.estado = ?';
+      params.push(estado);
+    }
+
+    query += ' ORDER BY pp.fecha_pedido DESC';
+    const [pedidos] = await pool.query(query, params);
+
+    if (!pedidos || pedidos.length === 0) {
+      return res.status(200).json({
+        success: true,
+        mensaje: 'No hay pedidos para reportar',
+        pedidos: []
+      });
+    }
+
+    const doc = new PDFDocument({
+      margin: 40,
+      size: 'A4',
+      bufferPages: true
+    });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=pedidos_proveedores_${new Date().toISOString().split('T')[0]}.pdf`);
+
+    doc.pipe(res);
+
+    doc.fontSize(20).font('Helvetica-Bold').text('Pastelería Don Pepe', { align: 'center' });
+    doc.fontSize(14).font('Helvetica-Bold').text('Reporte de Pedidos a Proveedores', { align: 'center' });
+    doc.fontSize(10).font('Helvetica').text(`Fecha: ${new Date().toLocaleDateString('es-PE')}`, { align: 'center' });
+    doc.moveDown(1.5);
+
+    let y = doc.y;
+    const columnPositions = [50, 180, 260, 330, 400, 470];
+
+    doc.fontSize(9).font('Helvetica-Bold');
+    doc.text('Proveedor', columnPositions[0], y);
+    doc.text('Fecha Pedido', columnPositions[1], y);
+    doc.text('F. Entrega', columnPositions[2], y);
+    doc.text('Estado', columnPositions[3], y);
+    doc.text('Total', columnPositions[4], y);
+
+    y += 20;
+    doc.moveTo(50, y - 5).lineTo(550, y - 5).stroke();
+
+    doc.font('Helvetica').fontSize(8);
+    let totalGeneral = 0;
+
+    pedidos.forEach(ped => {
+      if (y > 700) {
+        doc.addPage();
+        y = 50;
+        doc.fontSize(9).font('Helvetica-Bold');
+        doc.text('Proveedor', columnPositions[0], y);
+        doc.text('Fecha Pedido', columnPositions[1], y);
+        doc.text('F. Entrega', columnPositions[2], y);
+        doc.text('Estado', columnPositions[3], y);
+        doc.text('Total', columnPositions[4], y);
+        y += 20;
+        doc.moveTo(50, y - 5).lineTo(550, y - 5).stroke();
+        doc.font('Helvetica').fontSize(8);
+      }
+
+      totalGeneral += parseFloat(ped.total);
+      doc.text(ped.nombre_proveedor.substring(0, 15), columnPositions[0], y);
+      doc.text(new Date(ped.fecha_pedido).toLocaleDateString('es-PE'), columnPositions[1], y);
+      doc.text(ped.fecha_entrega_estimada ? new Date(ped.fecha_entrega_estimada).toLocaleDateString('es-PE') : '-', columnPositions[2], y);
+      doc.text(ped.estado, columnPositions[3], y);
+      doc.text(`S/.${parseFloat(ped.total).toFixed(2)}`, columnPositions[4], y);
+      y += 15;
+    });
+
+    y += 10;
+    doc.moveTo(50, y).lineTo(550, y).stroke();
+    y += 15;
+    doc.fontSize(11).font('Helvetica-Bold');
+    doc.text('TOTAL GENERAL:', columnPositions[0], y);
+    doc.text(`S/.${totalGeneral.toFixed(2)}`, columnPositions[4], y);
+
+    const pages = doc.bufferedPageRange();
+    for (let i = 0; i < pages.count; i++) {
+      doc.switchToPage(i);
+      doc.fontSize(8).font('Helvetica').text(`Página ${i + 1} de ${pages.count}`, 50, doc.page.height - 30, { align: 'center' });
+    }
+
+    doc.end();
+
+  } catch (error) {
+    console.error('Error al generar reporte PDF:', error);
+    if (!res.headersSent) {
+      return res.status(500).json({
+        success: false,
+        mensaje: 'Error al generar reporte',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  }
+});
+
+/**
+ * GET /api/reportes/auditoria/excel
+ * Reporte de registros eliminados (auditoría) - Solo Admin
+ */
+router.get('/auditoria/excel', verificarSesion, soloAdmin, async (req, res) => {
+  try {
+    const { fecha_inicio = '', fecha_fin = '' } = req.query;
+
+    let query = `
+      SELECT a.*, u.nombre_completo
+      FROM auditoria a
+      LEFT JOIN usuarios u ON a.id_usuario = u.id_usuario
+      WHERE 1=1
+    `;
+    let params = [];
+
+    if (fecha_inicio) {
+      query += ' AND DATE(a.fecha_accion) >= ?';
+      params.push(fecha_inicio);
+    }
+    if (fecha_fin) {
+      query += ' AND DATE(a.fecha_accion) <= ?';
+      params.push(fecha_fin);
+    }
+
+    query += ' ORDER BY a.fecha_accion DESC';
+    const [registros] = await pool.query(query, params);
+
+    if (!registros || registros.length === 0) {
+      return res.status(200).json({
+        success: true,
+        mensaje: 'No hay registros de auditoría',
+        registros: []
+      });
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Auditoría');
+
+    worksheet.columns = [
+      { header: 'ID', key: 'id_auditoria', width: 10 },
+      { header: 'Tabla', key: 'tabla_afectada', width: 20 },
+      { header: 'ID Registro', key: 'id_registro', width: 12 },
+      { header: 'Acción', key: 'accion', width: 15 },
+      { header: 'Fecha', key: 'fecha_accion', width: 20 },
+      { header: 'Usuario', key: 'nombre_completo', width: 25 },
+      { header: 'Datos Anteriores', key: 'datos_anteriores', width: 40 }
+    ];
+
+    worksheet.getRow(1).font = { bold: true, size: 11, color: { argb: 'FFFFFFFF' } };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFFF5722' }
+    };
+    worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'center' };
+
+    registros.forEach(reg => {
+      worksheet.addRow({
+        id_auditoria: reg.id_auditoria,
+        tabla_afectada: reg.tabla_afectada,
+        id_registro: reg.id_registro,
+        accion: reg.accion.toUpperCase(),
+        fecha_accion: new Date(reg.fecha_accion).toLocaleString('es-PE'),
+        nombre_completo: reg.nombre_completo || 'Sistema',
+        datos_anteriores: JSON.stringify(reg.datos_anteriores)
+      });
+    });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=auditoria_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return res.send(buffer);
+
+  } catch (error) {
+    console.error('Error al generar reporte de auditoría:', error);
+    return res.status(500).json({
+      success: false,
+      mensaje: 'Error al generar reporte de auditoría',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+/**
+ * GET /api/reportes/auditoria/pdf
+ * Reporte de auditoría en PDF - Solo Admin
+ */
+router.get('/auditoria/pdf', verificarSesion, soloAdmin, async (req, res) => {
+  try {
+    const { fecha_inicio = '', fecha_fin = '' } = req.query;
+
+    let query = `
+      SELECT a.*, u.nombre_completo
+      FROM auditoria a
+      LEFT JOIN usuarios u ON a.id_usuario = u.id_usuario
+      WHERE 1=1
+    `;
+    let params = [];
+
+    if (fecha_inicio) {
+      query += ' AND DATE(a.fecha_accion) >= ?';
+      params.push(fecha_inicio);
+    }
+    if (fecha_fin) {
+      query += ' AND DATE(a.fecha_accion) <= ?';
+      params.push(fecha_fin);
+    }
+
+    query += ' ORDER BY a.fecha_accion DESC';
+    const [registros] = await pool.query(query, params);
+
+    if (!registros || registros.length === 0) {
+      return res.status(200).json({
+        success: true,
+        mensaje: 'No hay registros de auditoría',
+        registros: []
+      });
+    }
+
+    const doc = new PDFDocument({
+      margin: 40,
+      size: 'A4',
+      bufferPages: true
+    });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=auditoria_${new Date().toISOString().split('T')[0]}.pdf`);
+
+    doc.pipe(res);
+
+    doc.fontSize(20).font('Helvetica-Bold').text('Pastelería Don Pepe', { align: 'center' });
+    doc.fontSize(14).font('Helvetica-Bold').text('Reporte de Auditoría - Registros Eliminados', { align: 'center' });
+    doc.fontSize(10).font('Helvetica').text(`Fecha: ${new Date().toLocaleDateString('es-PE')}`, { align: 'center' });
+    doc.moveDown(1.5);
+
+    let y = doc.y;
+    const columnPositions = [50, 120, 200, 260, 340, 420];
+
+    doc.fontSize(9).font('Helvetica-Bold');
+    doc.text('Tabla', columnPositions[0], y);
+    doc.text('ID Reg.', columnPositions[1], y);
+    doc.text('Acción', columnPositions[2], y);
+    doc.text('Fecha', columnPositions[3], y);
+    doc.text('Usuario', columnPositions[4], y);
+
+    y += 20;
+    doc.moveTo(50, y - 5).lineTo(550, y - 5).stroke();
+
+    doc.font('Helvetica').fontSize(8);
+
+    registros.forEach(reg => {
+      if (y > 700) {
+        doc.addPage();
+        y = 50;
+        doc.fontSize(9).font('Helvetica-Bold');
+        doc.text('Tabla', columnPositions[0], y);
+        doc.text('ID Reg.', columnPositions[1], y);
+        doc.text('Acción', columnPositions[2], y);
+        doc.text('Fecha', columnPositions[3], y);
+        doc.text('Usuario', columnPositions[4], y);
+        y += 20;
+        doc.moveTo(50, y - 5).lineTo(550, y - 5).stroke();
+        doc.font('Helvetica').fontSize(8);
+      }
+
+      doc.text(reg.tabla_afectada, columnPositions[0], y);
+      doc.text(reg.id_registro.toString(), columnPositions[1], y);
+      doc.text(reg.accion, columnPositions[2], y);
+      doc.text(new Date(reg.fecha_accion).toLocaleDateString('es-PE'), columnPositions[3], y);
+      doc.text((reg.nombre_completo || 'Sistema').substring(0, 12), columnPositions[4], y);
+      y += 15;
+    });
+
+    const pages = doc.bufferedPageRange();
+    for (let i = 0; i < pages.count; i++) {
+      doc.switchToPage(i);
+      doc.fontSize(8).font('Helvetica').text(`Página ${i + 1} de ${pages.count}`, 50, doc.page.height - 30, { align: 'center' });
+    }
+
+    doc.end();
+
+  } catch (error) {
+    console.error('Error al generar reporte PDF:', error);
+    if (!res.headersSent) {
+      return res.status(500).json({
+        success: false,
+        mensaje: 'Error al generar reporte',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  }
+});
+
+/**
+ * GET /api/reportes/estadisticas-stock/excel
+ * Reporte de estadísticas de stock (máximo, mínimo, promedio)
+ */
+router.get('/estadisticas-stock/excel', verificarSesion, async (req, res) => {
+  try {
+    const [productos] = await pool.query(`
+      SELECT 
+        p.nombre,
+        p.categoria,
+        p.stock_actual,
+        p.stock_minimo,
+        p.unidad_medida,
+        MAX(m.stock_nuevo) as stock_maximo,
+        AVG(m.stock_nuevo) as stock_promedio,
+        COUNT(m.id_movimiento) as total_movimientos
+      FROM productos p
+      LEFT JOIN movimientos m ON p.id_producto = m.id_producto
+      WHERE p.estado = 'activo'
+      GROUP BY p.id_producto
+      ORDER BY p.categoria, p.nombre
+    `);
+
+    if (!productos || productos.length === 0) {
+      return res.status(404).json({
+        success: false,
+        mensaje: 'No hay productos para reportar'
+      });
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Estadísticas de Stock');
+
+    worksheet.columns = [
+      { header: 'Producto', key: 'nombre', width: 30 },
+      { header: 'Categoría', key: 'categoria', width: 15 },
+      { header: 'Stock Actual', key: 'stock_actual', width: 12 },
+      { header: 'Stock Mínimo', key: 'stock_minimo', width: 12 },
+      { header: 'Stock Máximo', key: 'stock_maximo', width: 12 },
+      { header: 'Stock Promedio', key: 'stock_promedio', width: 15 },
+      { header: 'Unidad', key: 'unidad_medida', width: 12 },
+      { header: 'Total Movimientos', key: 'total_movimientos', width: 18 }
+    ];
+
+    worksheet.getRow(1).font = { bold: true, size: 11, color: { argb: 'FFFFFFFF' } };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF4CAF50' }
+    };
+    worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'center' };
+
+    productos.forEach(prod => {
+      worksheet.addRow({
+        nombre: prod.nombre,
+        categoria: prod.categoria,
+        stock_actual: prod.stock_actual,
+        stock_minimo: prod.stock_minimo,
+        stock_maximo: prod.stock_maximo || prod.stock_actual,
+        stock_promedio: prod.stock_promedio ? parseFloat(prod.stock_promedio).toFixed(2) : prod.stock_actual,
+        unidad_medida: prod.unidad_medida,
+        total_movimientos: prod.total_movimientos
+      });
+    });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=estadisticas_stock_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return res.send(buffer);
+
+  } catch (error) {
+    console.error('Error al generar reporte de estadísticas:', error);
+    return res.status(500).json({
+      success: false,
+      mensaje: 'Error al generar reporte de estadísticas',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+/**
+ * GET /api/reportes/estadisticas-stock/pdf
+ * Reporte de estadísticas de stock en PDF
+ */
+router.get('/estadisticas-stock/pdf', verificarSesion, async (req, res) => {
+  try {
+    const [productos] = await pool.query(`
+      SELECT 
+        p.nombre,
+        p.categoria,
+        p.stock_actual,
+        p.stock_minimo,
+        p.unidad_medida,
+        MAX(m.stock_nuevo) as stock_maximo,
+        AVG(m.stock_nuevo) as stock_promedio,
+        COUNT(m.id_movimiento) as total_movimientos
+      FROM productos p
+      LEFT JOIN movimientos m ON p.id_producto = m.id_producto
+      WHERE p.estado = 'activo'
+      GROUP BY p.id_producto
+      ORDER BY p.categoria, p.nombre
+    `);
+
+    if (!productos || productos.length === 0) {
+      return res.status(404).json({
+        success: false,
+        mensaje: 'No hay productos para reportar'
+      });
+    }
+
+    const doc = new PDFDocument({
+      margin: 40,
+      size: 'A4',
+      bufferPages: true
+    });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=estadisticas_stock_${new Date().toISOString().split('T')[0]}.pdf`);
+
+    doc.pipe(res);
+
+    doc.fontSize(20).font('Helvetica-Bold').text('Pastelería Don Pepe', { align: 'center' });
+    doc.fontSize(14).font('Helvetica-Bold').text('Reporte de Estadísticas de Stock', { align: 'center' });
+    doc.fontSize(10).font('Helvetica').text(`Fecha: ${new Date().toLocaleDateString('es-PE')}`, { align: 'center' });
+    doc.moveDown(1.5);
+
+    let y = doc.y;
+    const columnPositions = [50, 180, 250, 300, 350, 400, 460];
+
+    doc.fontSize(9).font('Helvetica-Bold');
+    doc.text('Producto', columnPositions[0], y);
+    doc.text('Categoría', columnPositions[1], y);
+    doc.text('Actual', columnPositions[2], y);
+    doc.text('Mín', columnPositions[3], y);
+    doc.text('Máx', columnPositions[4], y);
+    doc.text('Prom', columnPositions[5], y);
+
+    y += 20;
+    doc.moveTo(50, y - 5).lineTo(550, y - 5).stroke();
+
+    doc.font('Helvetica').fontSize(8);
+
+    productos.forEach(prod => {
+      if (y > 700) {
+        doc.addPage();
+        y = 50;
+        doc.fontSize(9).font('Helvetica-Bold');
+        doc.text('Producto', columnPositions[0], y);
+        doc.text('Categoría', columnPositions[1], y);
+        doc.text('Actual', columnPositions[2], y);
+        doc.text('Mín', columnPositions[3], y);
+        doc.text('Máx', columnPositions[4], y);
+        doc.text('Prom', columnPositions[5], y);
+        y += 20;
+        doc.moveTo(50, y - 5).lineTo(550, y - 5).stroke();
+        doc.font('Helvetica').fontSize(8);
+      }
+
+      const stockMaximo = prod.stock_maximo || prod.stock_actual;
+      const stockPromedio = prod.stock_promedio ? parseFloat(prod.stock_promedio).toFixed(1) : prod.stock_actual;
+
+      doc.text(prod.nombre.substring(0, 18), columnPositions[0], y);
+      doc.text(prod.categoria, columnPositions[1], y);
+      doc.text(prod.stock_actual.toString(), columnPositions[2], y);
+      doc.text(prod.stock_minimo.toString(), columnPositions[3], y);
+      doc.text(stockMaximo.toString(), columnPositions[4], y);
+      doc.text(stockPromedio.toString(), columnPositions[5], y);
+      y += 15;
+    });
+
+    const pages = doc.bufferedPageRange();
+    for (let i = 0; i < pages.count; i++) {
+      doc.switchToPage(i);
+      doc.fontSize(8).font('Helvetica').text(`Página ${i + 1} de ${pages.count}`, 50, doc.page.height - 30, { align: 'center' });
+    }
+
+    doc.end();
+
+  } catch (error) {
+    console.error('Error al generar reporte PDF:', error);
+    if (!res.headersSent) {
+      return res.status(500).json({
+        success: false,
+        mensaje: 'Error al generar reporte',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  }
+});
+
 module.exports = router;

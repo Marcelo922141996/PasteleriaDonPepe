@@ -73,6 +73,77 @@ CREATE TABLE IF NOT EXISTS movimientos (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
+-- TABLA: proveedores
+-- Almacena información de proveedores
+-- =====================================================
+CREATE TABLE IF NOT EXISTS proveedores (
+  id_proveedor INT AUTO_INCREMENT PRIMARY KEY,
+  nombre_proveedor VARCHAR(100) NOT NULL,
+  ruc VARCHAR(11),
+  telefono VARCHAR(20),
+  correo VARCHAR(100),
+  direccion TEXT,
+  estado ENUM('activo', 'inactivo') DEFAULT 'activo',
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_nombre (nombre_proveedor)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================
+-- TABLA: pedidos_proveedores
+-- Registra pedidos realizados a proveedores
+-- =====================================================
+CREATE TABLE IF NOT EXISTS pedidos_proveedores (
+  id_pedido INT AUTO_INCREMENT PRIMARY KEY,
+  id_proveedor INT NOT NULL,
+  id_usuario INT NOT NULL,
+  fecha_pedido TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  fecha_entrega_estimada DATE,
+  fecha_entrega_real DATE,
+  estado ENUM('pendiente', 'recibido', 'cancelado') DEFAULT 'pendiente',
+  total DECIMAL(10, 2) DEFAULT 0.00,
+  observaciones TEXT,
+  FOREIGN KEY (id_proveedor) REFERENCES proveedores(id_proveedor) ON DELETE CASCADE,
+  FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+  INDEX idx_proveedor (id_proveedor),
+  INDEX idx_estado (estado),
+  INDEX idx_fecha (fecha_pedido)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================
+-- TABLA: detalle_pedidos
+-- Detalle de productos en cada pedido
+-- =====================================================
+CREATE TABLE IF NOT EXISTS detalle_pedidos (
+  id_detalle INT AUTO_INCREMENT PRIMARY KEY,
+  id_pedido INT NOT NULL,
+  id_producto INT NOT NULL,
+  cantidad INT NOT NULL,
+  precio_unitario DECIMAL(10, 2) NOT NULL,
+  subtotal DECIMAL(10, 2) NOT NULL,
+  FOREIGN KEY (id_pedido) REFERENCES pedidos_proveedores(id_pedido) ON DELETE CASCADE,
+  FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================
+-- TABLA: auditoria
+-- Registra todas las eliminaciones y cambios críticos
+-- =====================================================
+CREATE TABLE IF NOT EXISTS auditoria (
+  id_auditoria INT AUTO_INCREMENT PRIMARY KEY,
+  tabla_afectada VARCHAR(50) NOT NULL,
+  id_registro INT NOT NULL,
+  accion ENUM('eliminar', 'modificar') NOT NULL,
+  datos_anteriores JSON,
+  id_usuario INT,
+  fecha_accion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE SET NULL,
+  INDEX idx_tabla (tabla_afectada),
+  INDEX idx_fecha (fecha_accion)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+
+-- =====================================================
 -- DATOS INICIALES: Usuarios
 -- Contraseña "admin123" hash CORRECTO: $2b$10$8kDQ1Sz80sf9ndm3KiHHJOi/1h0WZsQ9fK9oeagfJwL/3VHO2qNGC
 -- Contraseña "almacen123" hash CORRECTO: $2b$10$/NuvniTdOcQg764nn3jk4u7AvJKmaywVCBLj2IzKXfw/Cqtu9Lzt.
@@ -120,6 +191,37 @@ INSERT INTO productos (nombre, descripcion, categoria, precio_venta, precio_cost
 ('Mantequilla', 'Mantequilla sin sal', 'insumos', 12.00, 8.00, 50, 10, 'kg', '/publico/imagenes/productos/mantequilla.png'),
 ('Huevos', 'Huevos frescos', 'insumos', 8.00, 6.00, 30, 10, 'docena', '/publico/imagenes/productos/huevos.png'),
 ('Leche Fresca', 'Leche entera', 'insumos', 4.50, 3.50, 40, 10, 'litro', '/publico/imagenes/productos/leche.png');
+
+
+-- =====================================================
+-- DATOS INICIALES: Proveedores
+-- =====================================================
+INSERT INTO proveedores (nombre_proveedor, ruc, telefono, correo, direccion) VALUES
+('Distribuidora Norte SAC', '20123456789', '074-231234', 'ventas@distrinorte.pe', 'Av. Bolognesi 456, Chiclayo'),
+('Insumos Panadería Perú', '20234567890', '074-245678', 'pedidos@insumosperu.pe', 'Jr. Balta 789, Chiclayo'),
+('Productos La Europea', '20345678901', '074-256789', 'contacto@laeuropea.pe', 'Calle Real 123, Chiclayo');
+
+-- =====================================================
+-- DATOS INICIALES: Pedidos de ejemplo
+-- =====================================================
+INSERT INTO pedidos_proveedores (id_proveedor, id_usuario, fecha_entrega_estimada, estado, total, observaciones) VALUES
+(1, 1, '2024-12-05', 'pendiente', 850.00, 'Pedido de harina y azúcar'),
+(2, 1, '2024-11-28', 'recibido', 450.00, 'Insumos para repostería'),
+(3, 2, '2024-12-10', 'pendiente', 320.00, 'Mantequilla y levadura');
+
+INSERT INTO detalle_pedidos (id_pedido, id_producto, cantidad, precio_unitario, subtotal) VALUES
+(1, 20, 50, 2.50, 125.00),
+(1, 21, 100, 2.00, 200.00),
+(2, 22, 20, 8.00, 160.00),
+(3, 22, 15, 8.00, 120.00);
+
+-- =====================================================
+-- DATOS INICIALES: Auditoría de ejemplo
+-- =====================================================
+INSERT INTO auditoria (tabla_afectada, id_registro, accion, datos_anteriores, id_usuario) VALUES
+('productos', 999, 'eliminar', '{"nombre": "Producto Test", "stock": 10}', 1),
+('usuarios', 888, 'modificar', '{"nombre": "Usuario Antiguo", "rol": "almacenero"}', 1);
+
 
 -- =====================================================
 -- DATOS INICIALES: Movimientos de ejemplo

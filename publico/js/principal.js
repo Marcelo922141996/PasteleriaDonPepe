@@ -895,6 +895,263 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// ===================================
+// REPORTES ADICIONALES - NUEVOS
+// ===================================
+
+/**
+ * Reporte de Pedidos a Proveedores - Excel
+ */
+async function generarReportePedidosExcel() {
+  const fechaInicio = document.getElementById('fecha-inicio-pedidos')?.value || '';
+  const fechaFin = document.getElementById('fecha-fin-pedidos')?.value || '';
+  const estado = document.getElementById('filtro-estado-pedidos')?.value || '';
+  
+  try {
+    mostrarAlerta('Generando reporte de pedidos...', 'info');
+    let url = '/api/reportes/pedidos-proveedores/excel?';
+    if (fechaInicio) url += `fecha_inicio=${fechaInicio}&`;
+    if (fechaFin) url += `fecha_fin=${fechaFin}&`;
+    if (estado) url += `estado=${estado}`;
+    
+    const respuesta = await fetch(url);
+    
+    // Verificar si la respuesta es JSON (sin datos)
+    const contentType = respuesta.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const data = await respuesta.json();
+      mostrarAlerta(data.mensaje || 'Sin datos para reportar', 'info');
+      return;
+    }
+    
+    if (respuesta.ok) {
+      const blob = await respuesta.blob();
+      const urlBlob = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = urlBlob;
+      a.download = `pedidos_proveedores_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(urlBlob);
+      mostrarAlerta('Reporte generado exitosamente', 'exito');
+    } else {
+      const error = await respuesta.json().catch(() => ({ mensaje: 'Error desconocido' }));
+      mostrarAlerta(error.mensaje || 'Error al generar reporte', 'error');
+    }
+  } catch (error) {
+    console.error('Error al generar reporte:', error);
+    mostrarAlerta('Error al generar reporte de pedidos', 'error');
+  }
+}
+
+/**
+ * Reporte de Pedidos a Proveedores - PDF
+ */
+async function generarReportePedidosPDF() {
+  const fechaInicio = document.getElementById('fecha-inicio-pedidos')?.value || '';
+  const fechaFin = document.getElementById('fecha-fin-pedidos')?.value || '';
+  const estado = document.getElementById('filtro-estado-pedidos')?.value || '';
+  
+  try {
+    mostrarAlerta('Generando reporte de pedidos PDF...', 'info');
+    let url = '/api/reportes/pedidos-proveedores/pdf?';
+    if (fechaInicio) url += `fecha_inicio=${fechaInicio}&`;
+    if (fechaFin) url += `fecha_fin=${fechaFin}&`;
+    if (estado) url += `estado=${estado}`;
+    
+    const respuesta = await fetch(url);
+    
+    // Verificar si la respuesta es JSON (sin datos)
+    const contentType = respuesta.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const data = await respuesta.json();
+      mostrarAlerta(data.mensaje || 'Sin datos para reportar', 'info');
+      return;
+    }
+    
+    if (respuesta.ok) {
+      const blob = await respuesta.blob();
+      if (blob.type !== 'application/pdf') {
+        console.error('El archivo recibido no es un PDF:', blob.type);
+        mostrarAlerta('Error: El servidor no devolvió un PDF válido', 'error');
+        return;
+      }
+      const urlBlob = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = urlBlob;
+      a.download = `pedidos_proveedores_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(urlBlob);
+      mostrarAlerta('Reporte PDF generado exitosamente', 'exito');
+    } else {
+      const error = await respuesta.json().catch(() => ({ mensaje: 'Error desconocido' }));
+      mostrarAlerta(error.mensaje || 'Error al generar reporte', 'error');
+    }
+  } catch (error) {
+    console.error('Error al generar reporte PDF:', error);
+    mostrarAlerta('Error al generar reporte de pedidos', 'error');
+  }
+}
+
+/**
+ * Reporte de Auditoría - Excel (Solo Admin)
+ */
+async function generarReporteAuditoriaExcel() {
+  const fechaInicio = document.getElementById('fecha-inicio-auditoria')?.value || '';
+  const fechaFin = document.getElementById('fecha-fin-auditoria')?.value || '';
+  
+  try {
+    mostrarAlerta('Generando reporte de auditoría...', 'info');
+    let url = '/api/reportes/auditoria/excel?';
+    if (fechaInicio) url += `fecha_inicio=${fechaInicio}&`;
+    if (fechaFin) url += `fecha_fin=${fechaFin}`;
+    
+    const respuesta = await fetch(url);
+    
+    // Verificar si la respuesta es JSON (sin datos)
+    const contentType = respuesta.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const data = await respuesta.json();
+      mostrarAlerta(data.mensaje || 'Sin datos para reportar', 'info');
+      return;
+    }
+    
+    if (respuesta.ok) {
+      const blob = await respuesta.blob();
+      const urlBlob = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = urlBlob;
+      a.download = `auditoria_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(urlBlob);
+      mostrarAlerta('Reporte de auditoría generado exitosamente', 'exito');
+    } else {
+      const error = await respuesta.json().catch(() => ({ mensaje: 'Error desconocido' }));
+      mostrarAlerta(error.mensaje || 'Error al generar reporte', 'error');
+    }
+  } catch (error) {
+    console.error('Error al generar reporte:', error);
+    mostrarAlerta('Error al generar reporte de auditoría', 'error');
+  }
+}
+
+/**
+ * Reporte de Auditoría - PDF (Solo Admin)
+ */
+async function generarReporteAuditoriaPDF() {
+  const fechaInicio = document.getElementById('fecha-inicio-auditoria')?.value || '';
+  const fechaFin = document.getElementById('fecha-fin-auditoria')?.value || '';
+  
+  try {
+    mostrarAlerta('Generando reporte de auditoría PDF...', 'info');
+    let url = '/api/reportes/auditoria/pdf?';
+    if (fechaInicio) url += `fecha_inicio=${fechaInicio}&`;
+    if (fechaFin) url += `fecha_fin=${fechaFin}`;
+    
+    const respuesta = await fetch(url);
+    
+    // Verificar si la respuesta es JSON (sin datos)
+    const contentType = respuesta.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const data = await respuesta.json();
+      mostrarAlerta(data.mensaje || 'Sin datos para reportar', 'info');
+      return;
+    }
+    
+    if (respuesta.ok) {
+      const blob = await respuesta.blob();
+      if (blob.type !== 'application/pdf') {
+        console.error('El archivo recibido no es un PDF:', blob.type);
+        mostrarAlerta('Error: El servidor no devolvió un PDF válido', 'error');
+        return;
+      }
+      const urlBlob = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = urlBlob;
+      a.download = `auditoria_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(urlBlob);
+      mostrarAlerta('Reporte de auditoría PDF generado exitosamente', 'exito');
+    } else {
+      const error = await respuesta.json().catch(() => ({ mensaje: 'Error desconocido' }));
+      mostrarAlerta(error.mensaje || 'Error al generar reporte', 'error');
+    }
+  } catch (error) {
+    console.error('Error al generar reporte PDF:', error);
+    mostrarAlerta('Error al generar reporte de auditoría', 'error');
+  }
+}
+
+/**
+ * Reporte de Estadísticas de Stock - Excel
+ */
+async function generarReporteEstadisticasExcel() {
+  try {
+    mostrarAlerta('Generando reporte de estadísticas...', 'info');
+    const respuesta = await fetch('/api/reportes/estadisticas-stock/excel');
+    
+    if (respuesta.ok) {
+      const blob = await respuesta.blob();
+      const urlBlob = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = urlBlob;
+      a.download = `estadisticas_stock_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(urlBlob);
+      mostrarAlerta('Reporte de estadísticas generado exitosamente', 'exito');
+    } else {
+      const error = await respuesta.json().catch(() => ({ mensaje: 'Error desconocido' }));
+      mostrarAlerta(error.mensaje || 'Error al generar reporte', 'error');
+    }
+  } catch (error) {
+    console.error('Error al generar reporte:', error);
+    mostrarAlerta('Error al generar reporte de estadísticas', 'error');
+  }
+}
+
+/**
+ * Reporte de Estadísticas de Stock - PDF
+ */
+async function generarReporteEstadisticasPDF() {
+  try {
+    mostrarAlerta('Generando reporte de estadísticas PDF...', 'info');
+    const respuesta = await fetch('/api/reportes/estadisticas-stock/pdf');
+    
+    if (respuesta.ok) {
+      const blob = await respuesta.blob();
+      if (blob.type !== 'application/pdf') {
+        console.error('El archivo recibido no es un PDF:', blob.type);
+        mostrarAlerta('Error: El servidor no devolvió un PDF válido', 'error');
+        return;
+      }
+      const urlBlob = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = urlBlob;
+      a.download = `estadisticas_stock_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(urlBlob);
+      mostrarAlerta('Reporte de estadísticas PDF generado exitosamente', 'exito');
+    } else {
+      const error = await respuesta.json().catch(() => ({ mensaje: 'Error desconocido' }));
+      mostrarAlerta(error.mensaje || 'Error al generar reporte', 'error');
+    }
+  } catch (error) {
+    console.error('Error al generar reporte PDF:', error);
+    mostrarAlerta('Error al generar reporte de estadísticas', 'error');
+  }
+}
+
 // Mensaje consola
 console.log('%c🧁 Pastelería Don Pepe - Sistema de Inventario v2.0', 'color: #ff6b6b; font-size: 16px; font-weight: bold;');
 console.log('%cSistema cargado correctamente', 'color: #51cf66; font-size: 12px;');
